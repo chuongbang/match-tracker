@@ -264,7 +264,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div className="p-4 overflow-y-auto">
           {players.length === 0 ? (
             <div className="card text-center text-gray-600 py-8">No players for this date. Click "+" to add!</div>
           ) : (
