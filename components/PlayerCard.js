@@ -4,17 +4,20 @@ export default function PlayerCard({ player, serviceFee, perMatchReward, onChang
   const [syncing, setSyncing] = useState(false)
   const [editingWins, setEditingWins] = useState(false)
   const [editingLosses, setEditingLosses] = useState(false)
+  const [editingFee, setEditingFee] = useState(false)
   const [winsInput, setWinsInput] = useState(player.wins)
   const [lossesInput, setLossesInput] = useState(player.losses)
+  const [feeInput, setFeeInput] = useState(player.fee || 0)
   
-  // Master players: no fee. Temp players: add fee
+  // Master players: no fee. Temp players: use their individual fee
+  const playerFee = player.isMaster ? 0 : (player.fee || 0)
   const total = player.isMaster 
     ? (player.losses - player.wins) * perMatchReward
-    : serviceFee + (player.losses - player.wins) * perMatchReward
+    : playerFee + (player.losses - player.wins) * perMatchReward
 
   const handleWin = async () => {
     const newWins = player.wins + 1
-    onChange(player.id, { wins: newWins })
+    onChange(player.recordId, { wins: newWins })
 
     // Sync to Supabase if sessionId provided
     if (sessionId) {
@@ -35,7 +38,7 @@ export default function PlayerCard({ player, serviceFee, perMatchReward, onChang
 
   const handleLoss = async () => {
     const newLosses = player.losses + 1
-    onChange(player.id, { losses: newLosses })
+    onChange(player.recordId, { losses: newLosses })
 
     // Sync to Supabase if sessionId provided
     if (sessionId) {
@@ -81,7 +84,7 @@ export default function PlayerCard({ player, serviceFee, perMatchReward, onChang
       return
     }
 
-    onChange(player.id, { wins: newWins })
+    onChange(player.recordId, { wins: newWins })
     setEditingWins(false)
 
     // Sync to Supabase
@@ -109,7 +112,7 @@ export default function PlayerCard({ player, serviceFee, perMatchReward, onChang
       return
     }
 
-    onChange(player.id, { losses: newLosses })
+    onChange(player.recordId, { losses: newLosses })
     setEditingLosses(false)
 
     // Sync to Supabase
@@ -124,6 +127,34 @@ export default function PlayerCard({ player, serviceFee, perMatchReward, onChang
         console.log('✅ Losses updated')
       } catch (e) {
         console.error('Error updating losses:', e)
+      } finally {
+        setSyncing(false)
+      }
+    }
+  }
+
+  const handleFeeEdit = async () => {
+    const newFee = Number(feeInput)
+    if (isNaN(newFee) || newFee < 0) {
+      alert('Invalid number')
+      return
+    }
+
+    onChange(player.recordId, { fee: newFee })
+    setEditingFee(false)
+
+    // Sync to Supabase - update individual player's fee
+    if (sessionId) {
+      setSyncing(true)
+      try {
+        await fetch(`/api/sessions/${sessionId}/players/${player.recordId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'set_fee', value: newFee }),
+        })
+        console.log('✅ Fee updated')
+      } catch (e) {
+        console.error('Error updating fee:', e)
       } finally {
         setSyncing(false)
       }
@@ -217,10 +248,36 @@ export default function PlayerCard({ player, serviceFee, perMatchReward, onChang
           </div>
           <div className="text-xs text-gray-600">Bet</div>
         </div>
-        <div className="bg-orange-50 rounded p-1.5 text-center">
-          <div className="text-xl md:text-2xl font-bold text-orange-600">{serviceFee.toFixed(0)}</div>
-          <div className="text-xs text-gray-600">Fee</div>
-        </div>
+        {editingFee && !player.isMaster ? (
+          <div className="bg-orange-50 rounded p-1.5 text-center">
+            <input
+              type="number"
+              value={feeInput}
+              onChange={e => setFeeInput(e.target.value)}
+              className="w-full border-2 border-orange-500 p-1 rounded text-center font-bold"
+              autoFocus
+            />
+            <button
+              onClick={handleFeeEdit}
+              className="text-xs mt-1 w-full bg-orange-500 text-white py-0.5 rounded"
+            >
+              OK
+            </button>
+          </div>
+        ) : (
+          <div 
+            className={`bg-orange-50 rounded p-1.5 text-center ${!player.isMaster ? 'cursor-pointer hover:bg-orange-100' : ''}`}
+            onClick={() => {
+              if (!player.isMaster) {
+                setFeeInput(playerFee)
+                setEditingFee(true)
+              }
+            }}
+          >
+            <div className="text-xl md:text-2xl font-bold text-orange-600">{playerFee.toFixed(0)}</div>
+            <div className="text-xs text-gray-600">Fee</div>
+          </div>
+        )}
       </div>
 
       {/* Buttons: Full width mobile, inline desktop */}

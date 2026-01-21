@@ -73,6 +73,7 @@ export default function AddPlayerModal({ open, onClose, onAdd, masterPlayers, se
             recordId: data.id,
             id: null,
             name: tempName, 
+            fee: serviceFee,
             isMaster: false,
             wins: 0,
             losses: 0
@@ -98,6 +99,7 @@ export default function AddPlayerModal({ open, onClose, onAdd, masterPlayers, se
             recordId: data.id,
             id: playerId,
             name: player?.name,
+            fee: 0,  // Master players don't have fee
             isMaster: true,
             wins: 0,
             losses: 0

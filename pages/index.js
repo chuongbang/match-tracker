@@ -9,10 +9,10 @@ import { supabase, isSupabaseConfigured, formatDate } from '../lib/supabase'
 import { v4 as uuidv4 } from 'uuid'
 
 function computeTotal(player, serviceFee, perMatchReward) {
-  // Master players: no fee. Temp players: add fee
+  // Master players: no fee. Temp players: use their individual fee
   return player.isMaster 
     ? (player.losses - player.wins) * perMatchReward
-    : serviceFee + (player.losses - player.wins) * perMatchReward
+    : (player.fee || 0) + (player.losses - player.wins) * perMatchReward
 }
 
 export default function Home({ user }) {
@@ -102,6 +102,7 @@ export default function Home({ user }) {
           name: p.player_name,
           wins: p.wins,
           losses: p.losses,
+          fee: p.fee || 0,  // Individual player fee
           isMaster: !!p.player_id,  // true if has player_id
         }))
       )
@@ -121,17 +122,18 @@ export default function Home({ user }) {
       name: playerData.name, 
       wins: 0, 
       losses: 0,
+      fee: playerData.fee || serviceFee,  // Use provided fee or default to session fee
       isMaster: playerData.isMaster || false
     }
     setPlayers(prev => [...prev, newPlayer])
   }
 
   function updatePlayer(id, changes) {
-    setPlayers(prev => prev.map(p => (p.id === id ? { ...p, ...changes } : p)))
+    setPlayers(prev => prev.map(p => (p.recordId === id ? { ...p, ...changes } : p)))
   }
 
   function deletePlayer(id) {
-    setPlayers(prev => prev.filter(p => p.id !== id))
+    setPlayers(prev => prev.filter(p => p.recordId !== id))
   }
 
   async function updateServiceFee(fee) {
@@ -220,8 +222,8 @@ export default function Home({ user }) {
 
   const totalWins = players.reduce((s, p) => s + p.wins, 0)
   const totalLosses = players.reduce((s, p) => s + p.losses, 0)
-  // Only count fee for temp players
-  const totalFees = players.filter(p => !p.isMaster).length * serviceFee
+  // Sum actual fees for each temp player
+  const totalFees = players.reduce((s, p) => s + (!p.isMaster ? (p.fee || 0) : 0), 0)
   const netBet = players.reduce((s, p) => s + (p.wins - p.losses) * perMatchReward, 0)
   const totalReceivable = players.reduce((s, p) => s + computeTotal(p, serviceFee, perMatchReward), 0)
 
@@ -242,7 +244,7 @@ export default function Home({ user }) {
           user={user}
         />
 
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 p-2 md:p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 p-2 md:p-4">
           <div className="col-span-1 card text-center p-2">
             <div className="text-xs text-gray-500 uppercase font-semibold">W/L</div>
             <div className="text-lg md:text-2xl font-bold">{totalWins}/{totalLosses}</div>
@@ -256,10 +258,6 @@ export default function Home({ user }) {
             <div className="text-lg md:text-2xl font-bold text-orange-600">{totalFees.toFixed(0)}</div>
           </div>
           <div className="col-span-1 card text-center p-2">
-            <div className="text-xs text-gray-500 uppercase font-semibold">Total</div>
-            <div className="text-lg md:text-2xl font-bold text-blue-600">{(netBet + totalFees).toFixed(0)}</div>
-          </div>
-          <div className="col-span-2 md:col-span-2 card text-center p-2">
             <div className="text-xs text-gray-500 uppercase font-semibold">Receivable</div>
             <div className="text-xl md:text-2xl font-bold text-purple-600">{totalReceivable.toFixed(0)}</div>
           </div>
