@@ -15,7 +15,7 @@ function computeTotal(player, serviceFee, perMatchReward) {
     : serviceFee + (player.losses - player.wins) * perMatchReward
 }
 
-export default function Home() {
+export default function Home({ user }) {
   const [view, setView] = useState('session') // 'session', 'reports', 'players'
   const [players, setPlayers] = useState([])
   const [masterPlayers, setMasterPlayers] = useState([])
@@ -239,6 +239,7 @@ export default function Home() {
           onReports={() => setView('reports')}
           onPlayers={() => setView('players')}
           onChangeDate={() => setShowSessionSelector(true)}
+          user={user}
         />
 
         <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 p-2 md:p-4">

@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { signOut } from '../lib/supabase'
 
-export default function Header({ date, serviceFee, perMatchReward, sessionId, onAdd, onServiceFeeChange, onPerMatchChange, onReports, onPlayers, onChangeDate }) {
+export default function Header({ date, serviceFee, perMatchReward, sessionId, onAdd, onServiceFeeChange, onPerMatchChange, onReports, onPlayers, onChangeDate, user }) {
   const [editingFee, setEditingFee] = useState(false)
   const [editingReward, setEditingReward] = useState(false)
   const [feeInput, setFeeInput] = useState(serviceFee)
   const [rewardInput, setRewardInput] = useState(perMatchReward)
   const [mounted, setMounted] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
@@ -57,10 +60,28 @@ export default function Header({ date, serviceFee, perMatchReward, sessionId, on
     }
   }
 
+  const handleLogout = async () => {
+    await signOut()
+    router.push('/login')
+  }
+
   if (!mounted) return null
 
   return (
     <div className="flex flex-col gap-2 p-2 md:p-4 bg-white/90 rounded">
+      {/* User info + Logout */}
+      {user && (
+        <div className="flex justify-between items-center text-xs md:text-sm mb-2">
+          <span className="text-gray-600">Đăng nhập: <strong>{user.email}</strong></span>
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
+          >
+            Đăng xuất
+          </button>
+        </div>
+      )}
+
       {/* Row 1: Date + Change button */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="bg-indigo-100 rounded px-2 md:px-3 py-1 md:py-2 font-medium text-sm md:text-base flex items-center gap-1">
