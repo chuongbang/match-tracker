@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { supabase, isSupabaseConfigured, formatDate } from '../lib/supabase'
 
 export default function SessionSelector({ date, onSelectSession, onSessionCreated }) {
   const [sessions, setSessions] = useState([])
@@ -80,13 +80,12 @@ export default function SessionSelector({ date, onSelectSession, onSessionCreate
   return (
     <div className="card p-4 mb-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-lg">Sessions for {date}</h3>
+        <h3 className="font-semibold text-lg">Sessions for {formatDate(date)}</h3>
         <button
           onClick={() => {
             // Auto-fill session name with date format
-            const dateObj = new Date(date + 'T00:00:00')
-            const dayMonth = `${dateObj.getDate()}/${dateObj.getMonth() + 1}`
-            setNewSessionName(`Buổi ${dayMonth}`)
+            const formatted = formatDate(date)
+            setNewSessionName(`Buổi ${formatted}`)
             setShowNewForm(!showNewForm)
           }}
           className="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600"

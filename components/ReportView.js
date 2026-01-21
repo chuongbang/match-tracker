@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { formatDate } from '../lib/supabase'
 
 export default function ReportView() {
   const [reportType, setReportType] = useState('daily')
@@ -73,7 +74,7 @@ export default function ReportView() {
         <div className="space-y-6">
           {report.map((item, idx) => (
             <div key={idx} className="bg-white rounded p-4">
-              <h3 className="text-lg font-semibold mb-2">{item.session.session_date} (Fee: {item.session.service_fee})</h3>
+              <h3 className="text-lg font-semibold mb-2">{formatDate(item.session.session_date)} (Fee: {item.session.service_fee})</h3>
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b">

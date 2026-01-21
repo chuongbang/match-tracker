@@ -5,7 +5,7 @@ import AddPlayerModal from '../components/AddPlayerModal'
 import ReportView from '../components/ReportView'
 import PlayersManagement from '../components/PlayersManagement'
 import SessionSelector from '../components/SessionSelector'
-import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { supabase, isSupabaseConfigured, formatDate } from '../lib/supabase'
 import { v4 as uuidv4 } from 'uuid'
 
 function computeTotal(player, serviceFee, perMatchReward) {
@@ -229,7 +229,7 @@ export default function Home({ user }) {
     <div className="min-h-screen">
       <div className="w-full">
         <Header
-          date={new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+          date={formatDate(selectedDate)}
           sessionId={sessionId}
           serviceFee={serviceFee}
           perMatchReward={perMatchReward}
