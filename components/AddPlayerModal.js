@@ -76,7 +76,8 @@ export default function AddPlayerModal({ open, onClose, onAdd, masterPlayers, se
             fee: serviceFee,
             isMaster: false,
             wins: 0,
-            losses: 0
+            losses: 0,
+            paid: false
           })
         }
       }
@@ -102,7 +103,8 @@ export default function AddPlayerModal({ open, onClose, onAdd, masterPlayers, se
             fee: 0,  // Master players don't have fee
             isMaster: true,
             wins: 0,
-            losses: 0
+            losses: 0,
+            paid: false
           })
         }
       }

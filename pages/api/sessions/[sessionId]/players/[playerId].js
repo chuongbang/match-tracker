@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   // playerId is actually session_players.id (PK)
 
   if (req.method === 'PATCH') {
-    const { action, value } = req.body // 'win', 'loss', 'set_wins', 'set_losses', 'set_fee'
+    const { action, value } = req.body // 'win', 'loss', 'set_wins', 'set_losses', 'set_fee', 'set_paid'
 
     try {
       console.log(`[PATCH] sessionId=${sessionId}, playerId=${playerId}, action=${action}`)
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       // Fetch current wins/losses using PK
       const { data: player, error: fetchError } = await supabase
         .from('session_players')
-        .select('wins, losses, fee')
+        .select('wins, losses, fee, paid')
         .eq('id', playerId)
         .single()
 
@@ -37,6 +37,8 @@ export default async function handler(req, res) {
         update = { losses: value }
       } else if (action === 'set_fee') {
         update = { fee: value }
+      } else if (action === 'set_paid') {
+        update = { paid: value }
       }
 
       const { error } = await supabase

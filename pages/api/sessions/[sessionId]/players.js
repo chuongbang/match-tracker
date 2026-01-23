@@ -14,7 +14,8 @@ export default async function handler(req, res) {
           player_name: playerName || null,
           fee: fee || 0,
           wins: 0,
-          losses: 0
+          losses: 0,
+          paid: false
         }])
         .select()
       if (error) throw error
@@ -24,12 +25,20 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'GET') {
     try {
+      // Get all session_players with their names (from either player_name or joined players table)
       const { data, error } = await supabase
-        .from('player_session_stats')
-        .select('*')
+        .from('session_players')
+        .select('id, session_id, player_id, player_name, wins, losses, fee, paid, players(name)')
         .eq('session_id', sessionId)
       if (error) throw error
-      res.status(200).json(data)
+      
+      // Map to include player name from either temp name or master player name
+      const mapped = data.map(p => ({
+        ...p,
+        player_name: p.player_name || (p.players?.name) || 'Unknown'
+      }))
+      
+      res.status(200).json(mapped)
     } catch (e) {
       res.status(500).json({ error: e.message })
     }

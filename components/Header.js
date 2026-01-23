@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { signOut } from '../lib/supabase'
 
-export default function Header({ date, serviceFee, perMatchReward, sessionId, onAdd, onServiceFeeChange, onPerMatchChange, onReports, onPlayers, onChangeDate, user }) {
+export default function Header({ date, serviceFee, perMatchReward, sessionId, onAdd, onServiceFeeChange, onPerMatchChange, onReports, onLeaderboard, onPlayers, onChangeDate, onPairs, user }) {
   const [editingFee, setEditingFee] = useState(false)
   const [editingReward, setEditingReward] = useState(false)
   const [feeInput, setFeeInput] = useState(serviceFee)
@@ -143,12 +143,24 @@ export default function Header({ date, serviceFee, perMatchReward, sessionId, on
       </div>
 
       {/* Row 2: Action buttons - responsive grid */}
-      <div className="grid grid-cols-3 gap-1 md:flex md:gap-2 md:justify-end">
+      <div className="grid grid-cols-5 gap-1 md:flex md:gap-2 md:justify-end">
         <button
           onClick={onPlayers}
           className="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1.5 md:px-3 md:py-2 rounded text-xs md:text-sm font-semibold"
         >
           👥
+        </button>
+        <button
+          onClick={onLeaderboard}
+          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1.5 md:px-3 md:py-2 rounded text-xs md:text-sm font-semibold"
+        >
+          🏆
+        </button>
+        <button
+          onClick={onPairs}
+          className="bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1.5 md:px-3 md:py-2 rounded text-xs md:text-sm font-semibold"
+        >
+          🎲
         </button>
         <button
           onClick={onReports}

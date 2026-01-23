@@ -3,8 +3,10 @@ import Header from '../components/Header'
 import PlayerCard from '../components/PlayerCard'
 import AddPlayerModal from '../components/AddPlayerModal'
 import ReportView from '../components/ReportView'
+import LeaderboardView from '../components/LeaderboardView'
 import PlayersManagement from '../components/PlayersManagement'
 import SessionSelector from '../components/SessionSelector'
+import MatchScheduleModal from '../components/MatchScheduleModal'
 import { supabase, isSupabaseConfigured, formatDate } from '../lib/supabase'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -16,10 +18,11 @@ function computeTotal(player, serviceFee, perMatchReward) {
 }
 
 export default function Home({ user }) {
-  const [view, setView] = useState('session') // 'session', 'reports', 'players'
+  const [view, setView] = useState('session') // 'session', 'reports', 'leaderboard', 'players'
   const [players, setPlayers] = useState([])
   const [masterPlayers, setMasterPlayers] = useState([])
   const [modalOpen, setModalOpen] = useState(false)
+  const [matchScheduleOpen, setMatchScheduleOpen] = useState(false)
   const [serviceFee, setServiceFee] = useState(0)
   const [perMatchReward, setPerMatchReward] = useState(10)
   const [sessionId, setSessionId] = useState(null)
@@ -103,6 +106,7 @@ export default function Home({ user }) {
           wins: p.wins,
           losses: p.losses,
           fee: p.fee || 0,  // Individual player fee
+          paid: p.paid || false,  // Payment status
           isMaster: !!p.player_id,  // true if has player_id
         }))
       )
@@ -190,6 +194,20 @@ export default function Home({ user }) {
     )
   }
 
+  if (view === 'leaderboard') {
+    return (
+      <div className="relative">
+        <LeaderboardView />
+        <button
+          onClick={() => setView('session')}
+          className="fixed bottom-6 right-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 shadow-lg"
+        >
+          ← Back
+        </button>
+      </div>
+    )
+  }
+
   if (view === 'players') {
     return <PlayersManagement onBack={() => { setView('session'); fetchMasterPlayers() }} />
   }
@@ -239,7 +257,9 @@ export default function Home({ user }) {
           onPerMatchChange={updatePerMatchReward}
           onAdd={() => setModalOpen(true)}
           onReports={() => setView('reports')}
+          onLeaderboard={() => setView('leaderboard')}
           onPlayers={() => setView('players')}
+          onPairs={() => setMatchScheduleOpen(true)}
           onChangeDate={() => setShowSessionSelector(true)}
           user={user}
         />
@@ -291,6 +311,12 @@ export default function Home({ user }) {
         masterPlayers={masterPlayers}
         sessionId={sessionId}
         serviceFee={serviceFee}
+      />
+
+      <MatchScheduleModal
+        open={matchScheduleOpen}
+        onClose={() => setMatchScheduleOpen(false)}
+        players={players}
       />
     </div>
   )

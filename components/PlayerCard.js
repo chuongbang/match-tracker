@@ -60,9 +60,6 @@ export default function PlayerCard({ player, serviceFee, perMatchReward, onChang
   const handleDelete = async () => {
     if (!confirm(`Delete ${player.name}?`)) return
     
-    // Delete from UI
-    onDelete(player.id)
-
     // Delete from Supabase if sessionId provided
     if (sessionId) {
       try {
@@ -73,8 +70,13 @@ export default function PlayerCard({ player, serviceFee, perMatchReward, onChang
         console.log('✅ Player deleted from session')
       } catch (e) {
         console.error('Error deleting player:', e)
+        alert('Error deleting player: ' + e.message)
+        return
       }
     }
+
+    // Delete from UI after successful API call
+    onDelete(player.recordId)
   }
 
   const handleWinsEdit = async () => {
@@ -161,22 +163,52 @@ export default function PlayerCard({ player, serviceFee, perMatchReward, onChang
     }
   }
 
+  const handleTogglePaid = async () => {
+    const newPaid = !player.paid
+    onChange(player.recordId, { paid: newPaid })
+
+    // Sync to Supabase
+    if (sessionId) {
+      try {
+        await fetch(`/api/sessions/${sessionId}/players/${player.recordId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'set_paid', value: newPaid }),
+        })
+        console.log('✅ Paid status updated')
+      } catch (e) {
+        console.error('Error updating paid status:', e)
+      }
+    }
+  }
+
   return (
-    <div className="card mb-2 p-3 opacity-90 hover:opacity-100 transition">
+    <div className={`card mb-2 p-3 opacity-90 hover:opacity-100 transition ${player.paid ? 'opacity-50' : ''}`}>
       {/* Header: Name + Total */}
       <div className="flex items-start justify-between mb-2">
-        <div>
-          <div className="text-lg font-bold">
-            {player.name}
+        <div className="flex-1">
+          <div className="text-lg font-bold flex items-center gap-2">
+            <span className={player.paid ? 'line-through text-gray-400' : ''}>{player.name}</span>
             {player.isMaster ? (
               <span className="ml-1 text-xs bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded">M</span>
             ) : (
               <span className="ml-1 text-xs bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded">T</span>
             )}
+            <button
+              onClick={handleTogglePaid}
+              className={`ml-auto px-2 py-0.5 rounded text-xs font-semibold transition ${
+                player.paid
+                  ? 'bg-green-100 text-green-700 border border-green-300'
+                  : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-green-50'
+              }`}
+              title={player.paid ? 'Mark as unpaid' : 'Mark as paid'}
+            >
+              {player.paid ? '✓ Paid' : 'Unpaid'}
+            </button>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xl font-bold text-purple-600">{total.toFixed(0)}</div>
+          <div className={`text-xl font-bold ${player.paid ? 'text-gray-400' : 'text-purple-600'}`}>{total.toFixed(0)}</div>
           <div className="text-xs text-gray-500">Payable</div>
         </div>
       </div>
